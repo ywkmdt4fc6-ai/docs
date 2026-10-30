@@ -1,146 +1,31 @@
-const STORAGE_KEY = 'todo-list-items-v1';
+# To-Do List App
 
-const todoForm = document.getElementById('todo-form');
-const todoInput = document.getElementById('todo-input');
-const todoList = document.getElementById('todo-list');
-const todoTemplate = document.getElementById('todo-item-template');
-const clearCompletedBtn = document.getElementById('clear-completed');
-const itemsLeftEl = document.getElementById('items-left');
-const filterButtons = Array.from(document.querySelectorAll('.filter-btn'));
+A small local-first to-do list application with browser storage.
 
-let tasks = loadTasks();
-let currentFilter = 'all';
+## Features
 
-function loadTasks() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return [];
+- Add tasks
+- Mark tasks complete/incomplete
+- Delete tasks
+- Clear completed tasks
+- Filter by All / Active / Completed
+- Persists in `localStorage`
 
-    const parsed = JSON.parse(saved);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    console.error('Failed to load tasks from localStorage:', error);
-    return [];
-  }
-}
+## Run locally
 
-function saveTasks() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-}
+Open `index.html` in a browser, or serve the folder with a local static server.
 
-function updateItemsLeft() {
-  const remaining = tasks.filter((task) => !task.completed).length;
-  const label = `${remaining} item${remaining === 1 ? '' : 's'} left`;
-  itemsLeftEl.textContent = label;
-}
+Example:
 
-function getFilteredTasks() {
-  if (currentFilter === 'active') {
-    return tasks.filter((task) => !task.completed);
-  }
+```bash
+cd todo-app
+python -m http.server 8000
+```
 
-  if (currentFilter === 'completed') {
-    return tasks.filter((task) => task.completed);
-  }
+Then visit `http://localhost:8000`.
 
-  return tasks;
-}
+## Files
 
-function renderTasks() {
-  const filteredTasks = getFilteredTasks();
-  todoList.innerHTML = '';
-
-  filteredTasks.forEach((task) => {
-    const fragment = todoTemplate.content.cloneNode(true);
-    const item = fragment.querySelector('.todo-item');
-    const checkbox = fragment.querySelector('.todo-checkbox');
-    const text = fragment.querySelector('.todo-text');
-    const deleteBtn = fragment.querySelector('.delete-btn');
-
-    item.dataset.id = String(task.id);
-    if (task.completed) {
-      item.classList.add('completed');
-    }
-
-    checkbox.checked = task.completed;
-    text.textContent = task.text;
-
-    checkbox.addEventListener('change', () => {
-      toggleTask(task.id);
-    });
-
-    deleteBtn.addEventListener('click', () => {
-      deleteTask(task.id);
-    });
-
-    todoList.appendChild(fragment);
-  });
-
-  updateItemsLeft();
-}
-
-function addTask(text) {
-  const trimmed = text.trim();
-  if (!trimmed) {
-    todoInput.focus();
-    return;
-  }
-
-  tasks.unshift({
-    id: crypto.randomUUID(),
-    text: trimmed,
-    completed: false,
-  });
-
-  saveTasks();
-  renderTasks();
-  todoInput.value = '';
-  todoInput.focus();
-}
-
-function toggleTask(id) {
-  tasks = tasks.map((task) =>
-    task.id === id ? { ...task, completed: !task.completed } : task,
-  );
-
-  saveTasks();
-  renderTasks();
-}
-
-function deleteTask(id) {
-  tasks = tasks.filter((task) => task.id !== id);
-  saveTasks();
-  renderTasks();
-}
-
-function clearCompleted() {
-  tasks = tasks.filter((task) => !task.completed);
-  saveTasks();
-  renderTasks();
-}
-
-function setFilter(filter) {
-  currentFilter = filter;
-
-  filterButtons.forEach((button) => {
-    const isActive = button.dataset.filter === filter;
-    button.classList.toggle('active', isActive);
-  });
-
-  renderTasks();
-}
-
-todoForm.addEventListener('submit', (event) => {
-  event.preventDefault();
-  addTask(todoInput.value);
-});
-
-clearCompletedBtn.addEventListener('click', clearCompleted);
-
-filterButtons.forEach((button) => {
-  button.addEventListener('click', () => {
-    setFilter(button.dataset.filter);
-  });
-});
-
-renderTasks();
+- `index.html` — app structure
+- `styles.css` — styling
+- `script.js` — application logic and localStorage persistence
